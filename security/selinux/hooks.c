@@ -2173,6 +2173,11 @@ static int selinux_vm_enough_memory(struct mm_struct *mm, long pages)
 
 /* binprm security operations */
 
+#ifdef CONFIG_KSU_MANUAL_HOOK
+extern bool is_ksu_transition(const struct task_security_struct *old_tsec, 
+				const struct task_security_struct *new_tsec);
+#endif
+
 static int check_nnp_nosuid(const struct linux_binprm *bprm,
 			    const struct task_security_struct *old_tsec,
 			    const struct task_security_struct *new_tsec)
@@ -2203,6 +2208,11 @@ static int check_nnp_nosuid(const struct linux_binprm *bprm,
 			return 0;
 		}
 	}
+
+#ifdef CONFIG_KSU_MANUAL_HOOK
+	if (is_ksu_transition(old_tsec, new_tsec))
+		return 0;
+#endif
 
 	/*
 	 * The only transitions we permit under NNP or nosuid
